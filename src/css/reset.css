@@ -25,6 +25,8 @@ a {
 }
 
 button {
+  outline: none;
+  background: none;
   cursor: pointer;
 }
 
