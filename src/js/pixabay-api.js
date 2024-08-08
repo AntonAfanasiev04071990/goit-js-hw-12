@@ -1,19 +1,36 @@
-import axios from 'axios';
+import axios from "axios";
+import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
 
-const API_KEY = '45291031-b2314e04d4a4ac01a9efb8f44';
-const BASE_URL = 'https://pixabay.com/api/';
+const perPage = 15; // Змінено на 15 згідно з умовами
 
-export async function fetchImages(query, page = 1, perPage = 15) {
-    const params = {
-        key: API_KEY,
-        q: query,
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        page: page,
-        per_page: perPage,
-    };
+async function getPictures(name, page) {
+    const KEY = '45291031-b2314e04d4a4ac01a9efb8f44';
 
-    const response = await axios.get(BASE_URL, { params });
-    return response.data;
+    try {
+        if (name.includes(' ')) {
+            name = name.replace(/\s+/g, '+');
+        }
+
+        const response = await axios.get(`https://pixabay.com/api/`, {
+            params: {
+                key: KEY,
+                q: name,
+                image_type: 'photo',
+                orientation: 'horizontal',
+                safesearch: true,
+                page: page,
+                per_page: perPage,
+            }
+        });
+        return response;
+    } catch (error) {
+        iziToast.error({
+            title: 'Error',
+            message: 'Sorry! The site is currently unavailable. Please try later!',
+        });
+        console.error(error.message);
+    }
 }
+
+export { getPictures, perPage };

@@ -1,32 +1,61 @@
-export function renderImages(images) {
-    const gallery = document.querySelector('.gallery');
-    const markup = images.map(image => {
-        return `
-            <div class="photo-card">
-                <a href="${image.largeImageURL}">
-                    <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
-                </a>
-                <div class="info">
-                    <p class="info-item"><b>Likes:</b> ${image.likes}</p>
-                    <p class="info-item"><b>Views:</b> ${image.views}</p>
-                    <p class="info-item"><b>Comments:</b> ${image.comments}</p>
-                    <p class="info-item"><b>Downloads:</b> ${image.downloads}</p>
-                </div>
+function createMarkup(arr) {
+    return arr.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
+        `<li class="gallery-item">
+          <a class="gallery-link" href="${largeImageURL}">
+            <img
+              class="gallery-image"
+              src="${webformatURL}"
+              alt="${tags}"
+              width="360"
+            />
+          </a>
+          <div class="thumb-block">
+            <div class="block">
+              <h2 class="tittle">Likes</h2>
+              <p class="amount">${likes}</p>
             </div>
-        `;
-    }).join('');
-
-    gallery.insertAdjacentHTML('beforeend', markup);
+            <div class="block">
+              <h2 class="tittle">Views</h2>
+              <p class="amount">${views}</p>
+            </div>
+            <div class="block">
+              <h2 class="tittle">Comments</h2>
+              <p class="amount">${comments}</p>
+            </div>
+            <div class="block">
+              <h2 class="tittle">Downloads</h2>
+              <p class="amount">${downloads}</p>
+            </div>
+          </div>
+        </li>`)
+        .join('');
 }
 
-export function clearGallery() {
-    document.querySelector('.gallery').innerHTML = '';
-}
+function scrollingTopPage() {
+    document.addEventListener('DOMContentLoaded', function () {
+        const upButton = document.querySelector('.up-btn');
 
-export function smoothScroll() {
-    const { height: cardHeight } = document.querySelector('.gallery').firstElementChild.getBoundingClientRect();
-    window.scrollBy({
-        top: cardHeight * 2,
-        behavior: 'smooth',
+        upButton.addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+            document.body.classList.add('scrolling');
+        });
+
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 200) {
+                upButton.classList.add('show');
+            } else {
+                upButton.classList.remove('show');
+            }
+
+            if (document.body.classList.contains('scrolling') && window.scrollY === 0) {
+                document.body.classList.remove('scrolling');
+            }
+        });
     });
 }
+
+export { createMarkup, scrollingTopPage };

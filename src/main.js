@@ -1,72 +1,130 @@
-import { fetchImages } from './js/pixabay-api';
-import { renderImages, clearGallery, smoothScroll } from './js/render-functions';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
-// import 'css-loader/dist/css-loader.css';
+import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
+import { getPictures, perPage } from "./js/pixabay-api";
+import { createMarkup, scrollingTopPage } from "./js/render-functions";
 
-const form = document.querySelector('.search-form');
-const loadMoreBtn = document.querySelector('.load-more');
-const gallery = document.querySelector('.gallery');
-
+const formSearch = document.querySelector('.js-search');
+const listImages = document.querySelector('.gallery');
+const loader = document.querySelector('.loader');
+const btnLoader = document.querySelector('.btn-load');
+const loaderMore = document.querySelector('.loader-more');
+const endLoader = document.querySelector('.end-loader');
 let currentPage = 1;
-let currentQuery = '';
-let totalHits = 0;
-let lightbox = new SimpleLightbox('.gallery a');
+let inputSearch = '';
+let simpleLightboxExem;
 
-form.addEventListener('submit', onSearch);
-loadMoreBtn.addEventListener('click', onLoadMore);
+loader.style.display = 'none';
+loaderMore.style.display = 'none';
+btnLoader.style.display = 'none';
+endLoader.style.display = 'none';
 
-async function onSearch(event) {
+formSearch.addEventListener('submit', onSearch);
+btnLoader.addEventListener('click', onLoadMore);
+
+scrollingTopPage();
+
+function onSearch(event) {
     event.preventDefault();
-    currentQuery = event.currentTarget.searchQuery.value.trim();
-    if (currentQuery === '') {
-        iziToast.error({ title: 'Error', message: 'Please enter a search query.' });
+
+    currentPage = 1;
+    listImages.innerHTML = '';
+    loader.style.display = 'block';
+    btnLoader.style.display = 'none';
+    endLoader.style.display = 'none';
+
+    inputSearch = event.target.elements.search.value.trim();
+
+    if (!inputSearch) {
+        iziToast.warning({
+            title: 'Caution',
+            message: 'Sorry, but you did not fill out the field!',
+        });
+        loader.style.display = 'none';
         return;
     }
 
-    currentPage = 1;
-    clearGallery();
-    loadMoreBtn.classList.add('hidden');
-    
-    try {
-        const data = await fetchImages(currentQuery, currentPage);
-        totalHits = data.totalHits;
+    getPictures(inputSearch, currentPage)
+        .then(({ data }) => {
+            loader.style.display = 'none';
 
-        if (totalHits === 0) {
-            iziToast.warning({ title: 'No Results', message: 'Sorry, no images found. Try another query!' });
-            return;
-        }
+            const totalPages = Math.ceil(data.totalHits / perPage);
 
-        renderImages(data.hits);
-        lightbox.refresh();
-        loadMoreBtn.classList.remove('hidden');
-        smoothScroll();
+            if (currentPage === totalPages) {
+                btnLoader.style.display = 'none';
+                endLoader.style.display = 'block';
+            } else {
+                btnLoader.style.display = 'block';
+            }
 
-        if (totalHits <= currentPage * 15) {
-            loadMoreBtn.classList.add('hidden');
-            iziToast.info({ title: 'End', message: "We're sorry, but you've reached the end of search results." });
-        }
-    } catch (error) {
-        iziToast.error({ title: 'Error', message: 'Something went wrong. Please try again later.' });
-    }
+            if (!data.hits.length) {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Sorry, there are no images matching your search query. Please try again!',
+                });
+                return;
+            }
+
+            listImages.insertAdjacentHTML("beforeend", createMarkup(data.hits));
+
+            iziToast.success({
+                title: 'Wow',
+                message: `We found ${data.totalHits} pictures!`,
+            });
+
+            simpleLightboxExem = new SimpleLightbox('.gallery a', {
+                captions: true,
+                captionsData: 'alt',
+                captionDelay: 250,
+            }).refresh();
+
+            formSearch.reset();
+        })
+        .catch((err) => {
+            loader.style.display = 'none';
+            console.log(err);
+        });
 }
 
-async function onLoadMore() {
+function onLoadMore() {
     currentPage += 1;
 
-    try {
-        const data = await fetchImages(currentQuery, currentPage);
-        renderImages(data.hits);
-        lightbox.refresh();
-        smoothScroll();
+    loaderMore.style.display = 'block';
+    btnLoader.style.display = 'none';
+    endLoader.style.display = 'none';
 
-        if (totalHits <= currentPage * 15) {
-            loadMoreBtn.classList.add('hidden');
-            iziToast.info({ title: 'End', message: "We're sorry, but you've reached the end of search results." });
-        }
-    } catch (error) {
-        iziToast.error({ title: 'Error', message: 'Something went wrong. Please try again later.' });
-    }
+    const getHeightImgCard = () => document.querySelector('.gallery-item').getBoundingClientRect();
+
+    getPictures(inputSearch, currentPage)
+        .then(({ data }) => {
+            listImages.insertAdjacentHTML("beforeend", createMarkup(data.hits));
+
+            window.scrollBy({
+                top: getHeightImgCard().height * 2,
+                left: 0,
+                behavior: "smooth",
+            });
+
+            simpleLightboxExem.refresh();
+
+            const totalPages = Math.ceil(data.totalHits / perPage);
+
+            if (currentPage === totalPages) {
+                iziToast.info({
+                    title: 'Caution',
+                    message: `We're sorry, but you've reached the end of search results.`,
+                });
+
+                btnLoader.style.display = 'none';
+                loaderMore.style.display = 'none';
+                endLoader.style.display = 'block';
+
+                return;
+            }
+
+            loaderMore.style.display = 'none';
+            btnLoader.style.display = 'block';
+        })
+        .catch(error => console.log(error));
 }
