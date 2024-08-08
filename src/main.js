@@ -7,8 +7,9 @@ import 'izitoast/dist/css/iziToast.min.css';
 // import 'css-loader/dist/css-loader.css';  // Використання індикатора завантаження
 
 const form = document.querySelector('.search-form');
-const loadMoreBtn = document.querySelector('.load-more');
+const loadMoreBtn = document.querySelector('.container-loader');
 const gallery = document.querySelector('.gallery');
+const btnLoader = document.querySelector('.btn-load');
 
 let currentPage = 1;
 let currentQuery = '';
@@ -16,6 +17,7 @@ let totalHits = 0;
 let lightbox = new SimpleLightbox('.gallery a');
 
 form.addEventListener('submit', onSearch);
+btnLoader.addEventListener('click', onLoadMore);
 
 async function onSearch(event) {
     event.preventDefault();
@@ -27,6 +29,7 @@ async function onSearch(event) {
 
     currentPage = 1;
     clearGallery();
+    loadMoreBtn.classList.add('hidden');
         
     try {
         const data = await fetchImages(currentQuery, currentPage);
