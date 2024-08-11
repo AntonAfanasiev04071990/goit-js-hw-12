@@ -14,8 +14,8 @@ let lightbox = new SimpleLightbox('.gallery a', {
 
 const searchForm = document.querySelector('.search-form');
 const loader = document.querySelector('.loader');
-const loadMore = document.querySelector(`.btn-load`);
-const endText = document.querySelector(`.end-loader`);
+const loadMore = document.querySelector('.btn-load');
+const endText = document.querySelector('.end-loader');
 
 loadMore.addEventListener('click', async (event) => {
     event.preventDefault();
@@ -24,14 +24,22 @@ loadMore.addEventListener('click', async (event) => {
     try {
         const responseData = await fetchImages(appState);
         if (appState.page * 15 >= responseData.totalHits) {
-            loadMore.style.display = "none"
+            loadMore.style.display = "none";
+            endText.style.display = "block";
         } else {
-            loadMore.style.display = "block"
+            loadMore.style.display = "block";
+            endText.style.display = "none";
         }
         const images = responseData.hits;
 
-    renderImages(images);
-    lightbox.refresh();
+        renderImages(images);
+        lightbox.refresh();
+
+        const cardHeight = document.querySelector('.photo-card').getBoundingClientRect().height;
+        window.scrollBy({
+            top: cardHeight * 2,
+            behavior: "smooth",
+        });
     } catch (error) {
         iziToast.error({
             title: 'Error',
@@ -41,7 +49,8 @@ loadMore.addEventListener('click', async (event) => {
     } finally {
         hideLoading();
     }
-})
+});
+
 searchForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -66,11 +75,11 @@ searchForm.addEventListener('submit', async (event) => {
     try {
         const responseData = await fetchImages(appState);
         if (appState.page * 15 >= responseData.totalHits) {
-            loadMore.style.display = "none"
-            endText.style.display = "block"
+            loadMore.style.display = "none";
+            endText.style.display = "block";
         } else {
-            loadMore.style.display = "block"
-            endText.style.display = "none"
+            loadMore.style.display = "block";
+            endText.style.display = "none";
         }
         const images = responseData.hits;
 
