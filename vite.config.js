@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import glob from 'glob';
 import injectHTML from 'vite-plugin-html-inject';
 import FullReload from 'vite-plugin-full-reload';
+import commonjs from '@rollup/plugin-commonjs';
+import replace from '@rollup/plugin-replace';
 
 export default defineConfig(({ command }) => {
   return {
@@ -11,7 +13,6 @@ export default defineConfig(({ command }) => {
     root: 'src',
     build: {
       sourcemap: true,
-
       rollupOptions: {
         input: glob.sync('./src/*.html'),
         output: {
@@ -22,9 +23,24 @@ export default defineConfig(({ command }) => {
           },
           entryFileNames: 'commonHelpers.js',
         },
+        plugins: [
+          replace({
+            preventAssignment: true,
+            delimiters: ['', ''],
+            values: {
+              '{}.addEventListener': 'Object.prototype.addEventListener', // Замена проблемного кода
+            },
+          }),
+        ],
+        onwarn(warning, warn) {
+          if (warning.code === 'THIS_IS_UNDEFINED') {
+            return;
+          }
+          warn(warning);
+        },
       },
       outDir: '../dist',
     },
-    plugins: [injectHTML(), FullReload(['./src/**/**.html'])],
+    plugins: [injectHTML(), commonjs(), FullReload(['./src/**/**.html'])],
   };
 });
