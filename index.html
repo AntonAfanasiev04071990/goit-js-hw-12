@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Search App</title>
+    
+    <script type="module" crossorigin src="/goit-js-hw-12/commonHelpers.js"></script>
+    <link rel="modulepreload" crossorigin href="/goit-js-hw-12/assets/vendor-015f4caf.js">
+    <link rel="stylesheet" href="/goit-js-hw-12/assets/vendor-1cd1f9d9.css">
+    <link rel="stylesheet" href="/goit-js-hw-12/assets/index-64bce02c.css">
+  </head>
+  <body>
+    <form class="search-form">
+      <input type="text" name="searchQuery" placeholder="Search images..." />
+      <button type="submit">Search</button>
+    </form>
+    <div class="gallery"></div>
+    <div class="container-loader">
+      <span class="loader-more"></span>
+      <button class="btn-load" style="display: none">Load more</button>
+      <p class="end-loader" style="display: none">
+        We're sorry, but you've reached the end of search results.
+      </p>
+    </div>
+    <div class="loader" style="display: none">
+      <div class="lds-dual-ring"></div>
+    </div>
+    
+  </body>
+</html>
